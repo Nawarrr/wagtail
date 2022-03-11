@@ -6,6 +6,7 @@ from django.db.models import Model
 from django.urls import re_path
 from django.utils.safestring import mark_safe
 
+
 from wagtail.admin.admin_url_finder import register_admin_url_finder
 from wagtail.admin.checks import check_panels_in_model
 from wagtail.admin.edit_handlers import (
@@ -14,6 +15,7 @@ from wagtail.admin.edit_handlers import (
 )
 from wagtail.core import hooks
 from wagtail.core.models import Page
+from wagtail.core.utils import accepts_kwarg
 
 from .helpers import (
     AdminURLHelper,
@@ -132,6 +134,7 @@ class ModelAdmin(WagtailRegisterable):
     extra_search_kwargs = {}
     permission_helper_class = None
     url_helper_class = None
+    base_url_path = None
     button_helper_class = None
     index_view_extra_css = []
     index_view_extra_js = []
@@ -156,7 +159,7 @@ class ModelAdmin(WagtailRegisterable):
         self.permission_helper = self.get_permission_helper_class()(
             self.model, self.inspect_view_enabled
         )
-        self.url_helper = self.get_url_helper_class()(self.model)
+        self.url_helper = self.get_url_helper_class()(self.model , self.base_url_path)
 
         # Needed to support RelatedFieldListFilter
         # See: https://github.com/wagtail/wagtail/issues/5105
@@ -174,6 +177,9 @@ class ModelAdmin(WagtailRegisterable):
         return PermissionHelper
 
     def get_url_helper_class(self):
+        if not accepts_kwarg(AdminURLHelper.__init__, 'base_url_path'):
+            raise DeprecationWarning("AdminURLHelper.__init__ is Depricated")
+            
         if self.url_helper_class:
             return self.url_helper_class
         if self.is_pagemodel:

@@ -6,14 +6,20 @@ from django.utils.functional import cached_property
 
 
 class AdminURLHelper:
-    def __init__(self, model):
+    def __init__(self, model,base_url_path=None):
         self.model = model
         self.opts = model._meta
+        self.base_url_path = base_url_path
 
     def _get_action_url_pattern(self, action):
-        if action == "index":
-            return r"^%s/%s/$" % (self.opts.app_label, self.opts.model_name)
-        return r"^%s/%s/%s/$" % (self.opts.app_label, self.opts.model_name, action)
+        if self.base_url_path :
+            if action == "index":
+                return r"^%s/$" % (self.base_url_path)
+            return r"^%s/%s/$" % (self.base_url_path, action)
+        else:
+            if action == "index":
+                return r"^%s/%s/$" % (self.opts.app_label, self.opts.model_name)
+            return r"^%s/%s/%s/$" % (self.opts.app_label, self.opts.model_name, action)
 
     def _get_object_specific_action_url_pattern(self, action):
         return r"^%s/%s/%s/(?P<instance_pk>[-\w]+)/$" % (
